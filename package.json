@@ -2,7 +2,6 @@
   "name": "base-href-runtime-vite-plugin",
   "version": "1.1.0",
   "main": "index.js",
-  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/web-bee-ru/base-href-runtime-vite-plugin"
@@ -14,7 +13,10 @@
     "plugin"
   ],
   "scripts": {
-    "test": "cd ./test && webpack"
+    "test": "cd ./test && npm install && npm run dev"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^4.3.2"
+  }
 }
