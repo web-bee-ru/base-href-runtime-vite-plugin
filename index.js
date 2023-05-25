@@ -1,5 +1,6 @@
-export default function baseHrefRuntimeVitePlugin(options) {
-  const { fallbackBaseHref, publicPaths } = options;
+function baseHrefRuntimeVitePlugin(options) {
+  const fallbackBaseHref = options?.fallbackBaseHref || "";
+  const publicPaths = options?.publicPaths || [];
 
   if (publicPaths.length === 0 && !fallbackBaseHref) {
     return;
@@ -42,3 +43,5 @@ export default function baseHrefRuntimeVitePlugin(options) {
     },
   };
 }
+
+module.exports = baseHrefRuntimeVitePlugin;

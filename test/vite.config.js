@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import baseHrefRuntimeVitePlugin from "..";
+import baseHrefRuntimeVitePlugin from "base-href-runtime-vite-plugin";
 
 export default defineConfig({
   plugins: [
