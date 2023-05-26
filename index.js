@@ -11,11 +11,8 @@ function baseHrefRuntimeVitePlugin(options) {
           (path) => "'" + path + "'"
         )}] || [];
         var fallbackBaseHref = '${fallbackBaseHref}' ? '${fallbackBaseHref}' : 'undefined';
-
-        const base = document.createElement("base")
-        document.getElementById("myScript").after(base)
-
-        base.href = publicPaths.find(
+        
+        document.getElementsByTagName("base")[0].href  = publicPaths.find(
             (path) => window.location.pathname.includes(path.replace(/\\/$/,""))
         ) || fallbackBaseHref || document.baseURI})();`;
 
@@ -30,7 +27,6 @@ function baseHrefRuntimeVitePlugin(options) {
           injectTo: "head-prepend",
           meta: { plugin: "base-href-runtime-webpack-plugin" },
           attrs: {
-            id: "myScript",
             type: "text/javascript",
             "data-name": "base-href-runtime-webpack-plugin",
           },
@@ -38,8 +34,8 @@ function baseHrefRuntimeVitePlugin(options) {
         },
       ];
 
-      if (html.includes("<base")) {
-        resTags.push({
+      if (!html.includes("<base")) {
+        resTags.unshift({
           tag: "base",
           voidTag: false,
           injectTo: "head-prepend",
