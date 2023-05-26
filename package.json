@@ -14,7 +14,7 @@
     "plugin"
   ],
   "scripts": {
-    "test": "cd ./test && npm install && npm run dev"
+    "test": "cd ./test && vite"
   },
   "license": "MIT",
   "devDependencies": {

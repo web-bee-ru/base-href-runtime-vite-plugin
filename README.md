@@ -1,8 +1,6 @@
 # base-href-runtime-vite-plugin
 
-[![npm version](https://badge.fury.io/js/base-href-runtime-vite-plugin.svg)](https://badge.fury.io/js/base-href-runtime-vite-plugin)
-
-Extension for [html-vite-plugin](https://github.com/ampedandwired/html-vite-plugin) to programmatically insert or update [`<base href="...">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) tag **in runtime** depending on _window.location.pathname_.
+Plugin for Vite to programmatically insert or update [`<base href="...">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) tag **in runtime** depending on _window.location.pathname_.
 
 It inserts inline `<script>` in your `index.html` output which generates (rewrites) `<base href="...">`
 
@@ -69,6 +67,41 @@ export default defineConfig({
 It will inject `<script></script>` in your `index.html`. This script compares current `window.location.pathname` and provided `publicPaths`. Then it updates `<base href="...">` if we have a match. Otherwise it sets _fallbackBaseHref_ value in your `<base href="...">`
 
 Plugin **leaves your template untouched** if `fallbackBaseHref` and `publicPaths` options are not provided.
+
+### Setup application router (optional)
+
+You might want to use `publicPaths` to prepare your application router (`react-router`, `vue-router`, etc.)
+
+<details>
+  <summary>Example with react-router</summary>
+
+```jsx
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { BrowserRouter as Router } from "react-router-dom";
+import { publicPaths, fallbackBaseHref } from "./lib/constants/config"; // use same variable as publicPaths in you vite.config.js
+
+const App = ({ basename }) => {
+  <Router basename={basename}>{/* ... your app content ... */}</Router>;
+};
+
+const getBasename = (pathname) => {
+  // @NOTE: You may straightaway return baseURI
+  // return document.baseURI;
+
+  const publicPath = publicPaths.find((publicPath) =>
+    pathname.includes(publicPath.replace(/\/$/, ""))
+  );
+  return publicPath || fallbackBaseHref;
+};
+
+ReactDOM.render(
+  <App basename={getBasename(window.location.pathname)} />,
+  document.getElementById("#app")
+);
+```
+
+</details>
 
 # Caveats
 
