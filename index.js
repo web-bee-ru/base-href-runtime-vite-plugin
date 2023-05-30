@@ -12,8 +12,8 @@ function baseHrefRuntimeVitePlugin(options) {
         )}] || [];
         var fallbackBaseHref = '${fallbackBaseHref}' ? '${fallbackBaseHref}' : 'undefined';
         
-        document.getElementsByTagName("base")[0].href  = publicPaths.find(
-            (path) => window.location.pathname.includes(path.replace(/\\/$/,""))
+        document.querySelector('base').href  = publicPaths.find(
+            (path) => window.location.pathname.includes(path.replace(/\\/$/, ""))
         ) || fallbackBaseHref || document.baseURI})();`;
 
   return {
@@ -46,7 +46,7 @@ function baseHrefRuntimeVitePlugin(options) {
       }
 
       return {
-        html: html.replace(/<base [^>]*/, `<base href='${fallbackBaseHref}'`),
+        html: html.replace(/<base [^>]*/, `<base href="${fallbackBaseHref}"`),
         tags: resTags,
       };
     },

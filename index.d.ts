@@ -1,4 +1,4 @@
-declare const  BaseHrefRuntimeVitePlugin  = (options: BaseVitePluginOptions) => any;
+declare const BaseHrefRuntimeVitePlugin = (options: BaseVitePluginOptions) => any;
 
 interface BaseVitePluginOptions {
     fallbackBaseHref?: string;
