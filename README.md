@@ -145,6 +145,12 @@ All modern browsers, even IE7
 
 https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base#browser_compatibility
 
+# References
+
+https://www.npmjs.com/package/base-href-webpack-plugin
+
+https://github.com/jantimon/html-webpack-plugin#base-tag
+
 # Contribution
 
 Feel free to contribute to this project by submitting issues and/or pull requests.
