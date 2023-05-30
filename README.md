@@ -1,8 +1,6 @@
-# base-href-runtime-webpack-plugin
+# base-href-runtime-vite-plugin
 
-[![npm version](https://badge.fury.io/js/base-href-runtime-webpack-plugin.svg)](https://badge.fury.io/js/base-href-runtime-webpack-plugin)
-
-Extension for [html-webpack-plugin](https://github.com/ampedandwired/html-webpack-plugin) to programmatically insert or update [`<base href="...">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) tag **in runtime** depending on *window.location.pathname*.
+Plugin for Vite to programmatically insert or update [`<base href="...">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) tag **in runtime** depending on _window.location.pathname_.
 
 It inserts inline `<script>` in your `index.html` output which generates (rewrites) `<base href="...">`
 
@@ -13,6 +11,7 @@ When your application is proxied with many different domains and prefixes you mi
 ### Example
 
 Your application is hosted on `example.com` and you have 2 known entrypoints (proxies) for this application:
+
 ```
 app.test.com/ui/app -> example.com
 app2.io/ui/test/entrypoint -> example.com
@@ -21,89 +20,87 @@ app2.io/ui/test/entrypoint -> example.com
 So you want to open `app.test.com/ui/app` and resolve `index.js` request to `app.test.com/ui/app/index.js` (`-> example.com/index.js`)
 
 For this purpose you want to generate different `<base>` tag:
+
 ```html
 <!-- for app.test.com/ui/app/ (/ui/app/) -->
-<base href="/ui/app/">
-<script src="index.js" /> <!-- /ui/app/index.js -->
+<base href="/ui/app/" />
+<script src="index.js" />
+<!-- /ui/app/index.js -->
 
 <!-- for app2.io/ui/test/entrypoint (/ui/test/entrypoint/) -->
-<base href="/ui/test/entrypoint/">
-<script src="index.js" /> <!-- /ui/test/entrypoint/index.js -->
+<base href="/ui/test/entrypoint/" />
+<script src="index.js" />
+<!-- /ui/test/entrypoint/index.js -->
 ```
 
 Thus `<base>` tag for the same `index.html` has to be generated **in runtime**.
 
 # Installation
 
-For webpack v5 use latest (^1.1.0):  
-`npm i --save-dev base-href-runtime-webpack-plugin`
+`npm i --save-dev base-href-runtime-vite-plugin`
 
 # Usage
 
-Prepare `HtmlWebpackPlugin`, it should generate *relative* paths for assets.
-
-```diff
-new HtmlWebpackPlugin({
-  template: 'public/index.html',
-  filename: 'index.html',
-  // ...,
-- publicPath: '/',
-+ publicPath: 'auto', // assets paths must be relative
-+ base: '/' // same as fallbackBaseHref, see https://github.com/jantimon/html-webpack-plugin#base-tag
-}),
-```
-
-Init `base-href-runtime-webpack-plugin`:
+Init `base-href-runtime-vite-plugin`:
 
 ```js
-const BaseHrefRuntimeWebpackPlugin = require('base-href-runtime-webpack-plugin');
+// vite.config.js
+import { defineConfig } from "vite";
+import baseHrefRuntimeVitePlugin from "base-href-runtime-vite-plugin";
 
-plugins: [
-  // ...,
-  new BaseHrefRuntimeWebpackPlugin({
-    fallbackBaseHref: '/', // in case when we didn't match location.pathname 
-    publicPaths: [ // availabled prefixes. Order is important!
-      '/ui/app/', // <base href="/ui/app/">
-      '/ui/test/entrypoint/', // <base href="/ui/test/entrypoint/">
-      '/a/b/c/d/e/', // <base href="/a/b/c/d/e/">
-    ],
-  }),
-]
+export default defineConfig({
+  plugins: [
+    baseHrefRuntimeVitePlugin({
+      fallbackBaseHref: "/", // in case when we didn't match location.pathname
+      publicPaths: [
+        // availabled prefixes. Order is important!
+        "/ui/app/log/", // <base href="/ui/app/log">
+        "/ui/app/", // <base href="/ui/app/">
+        "/ui/test/entrypoint/", // <base href="/ui/test/entrypoint/">
+        "/a/b/c/d/e/", // <base href="/a/b/c/d/e/">
+      ],
+    }),
+  ],
+});
 ```
 
-It will inject `<script></script>` in your `index.html`. This script compares current `window.location.pathname` and provided `publicPaths`. Then it updates `<base href="...">` if we have a match. Otherwise it sets *fallbackBaseHref* value in your `<base href="...">`
+It will inject `<script></script>` in your `index.html`. This script compares current `window.location.pathname` and provided `publicPaths`. Then it updates `<base href="...">` if we have a match. Otherwise it sets _fallbackBaseHref_ value in your `<base href="...">`
 
 Plugin **leaves your template untouched** if `fallbackBaseHref` and `publicPaths` options are not provided.
 
-### Setup application router (optional) 
+### Setup application router (optional)
 
 You might want to use `publicPaths` to prepare your application router (`react-router`, `vue-router`, etc.)
 
 <details>
   <summary>Example with react-router</summary>
 
-  ```jsx
-  import * as React from 'react';
-  import * as ReactDOM from 'react-dom';
-  import { BrowserRouter as Router } from 'react-router-dom';
-  import { publicPaths, fallbackBaseHref } from './lib/constants/config'; // use same variable as publicPaths in you webpack.config.js
+```jsx
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { BrowserRouter as Router } from "react-router-dom";
+import { publicPaths, fallbackBaseHref } from "./lib/constants/config"; // use same variable as publicPaths in you vite.config.js
 
-  const App = ({ basename }) => {
-    <Router basename={basename}>
-      {/* ... your app content ... */}
-    </Router>
-  }
+const App = ({ basename }) => {
+  <Router basename={basename}>{/* ... your app content ... */}</Router>;
+};
 
-  const getBasename = (pathname) => {
-    // @NOTE: You may straightaway return baseURI
-    // return document.baseURI;
+const getBasename = (pathname) => {
+  // @NOTE: You may straightaway return baseURI
+  // return document.baseURI;
 
-    const publicPath = publicPaths.find(publicPath => pathname.includes(publicPath.replace(/\/$/, '')));
-    return publicPath || fallbackBaseHref;
-  }
+  const publicPath = publicPaths.find((publicPath) =>
+    pathname.includes(publicPath.replace(/\/$/, ""))
+  );
+  return publicPath || fallbackBaseHref;
+};
 
-  ReactDOM.render(<App basename={getBasename(window.location.pathname)} />, document.getElementById('#app'));
-  ```
+ReactDOM.render(
+  <App basename={getBasename(window.location.pathname)} />,
+  document.getElementById("#app")
+);
+```
+
 </details>
 
 # Caveats
@@ -111,23 +108,22 @@ You might want to use `publicPaths` to prepare your application router (`react-r
 <details>
   <summary>Excessive requests (duplicated requests)</summary>
 
-  https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work#preload_scanner
+https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work#preload_scanner
 
+> The preload scanner will parse through the content available and request high priority resources like CSS, JavaScript, and web fonts. <...> It will retrieve resources in the background so that by the time the main HTML parser reaches requested assets, they may possibly already be in flight, or have been downloaded.
 
-  > The preload scanner will parse through the content available and request high priority resources like CSS, JavaScript, and web fonts. <...> It will retrieve resources in the background so that by the time the main HTML parser reaches requested assets, they may possibly already be in flight, or have been downloaded.
+It means that a browser requests all page's resources before you execute any `<script>`. So if your `<base href="...">` tag is being changed by the `<script>` then your browser will **repeat these requests again**.
 
+Example:
 
-  It means that a browser requests all page's resources before you execute any `<script>`. So if your `<base href="...">` tag is being changed by the `<script>` then your browser will **repeat these requests again**.
-
-  Example:
-  ```html
+```html
 <html>
   <head>
-    <base href="/unknown/">
+    <base href="/unknown/" />
     <script type="text/javascript">
-      console.log('Initial document.baseURI:', document.baseURI);
-      document.querySelector('base').href = '/'
-      console.log('New document.baseURI:', document.baseURI);
+      console.log("Initial document.baseURI:", document.baseURI);
+      document.querySelector("base").href = "/";
+      console.log("New document.baseURI:", document.baseURI);
     </script>
     <script src="js/index.js"></script>
 
@@ -136,9 +132,9 @@ You might want to use `publicPaths` to prepare your application router (`react-r
     <!-- So <script src="..." /> and <script src="..."></script> have different behaviour (WTF?!) -->
   </head>
 </html>
-  ```
-  
-  Chrome's Network tab result (`js/index.js` request duplicated):
+```
+
+Chrome's Network tab result (`js/index.js` request duplicated):
 
   <img width="676" alt="chrome_LmDvH3YJzy" src="https://user-images.githubusercontent.com/19373212/152134966-5cd1699b-4951-4a41-bb3a-2a733b1ac754.png">
 </details>
