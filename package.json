@@ -1,6 +1,6 @@
 {
   "name": "base-href-runtime-vite-plugin",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
