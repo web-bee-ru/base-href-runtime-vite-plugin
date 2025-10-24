@@ -1,63 +1,56 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const template = require('lodash.template');
-const fs = require('fs');
-const { validate } = require('schema-utils');
-const schema = require('./schema.json');
+function baseHrefRuntimeVitePlugin(options) {
+  const fallbackBaseHref = options?.fallbackBaseHref || "";
+  const publicPaths = options?.publicPaths || [];
 
-const scriptTemplate = fs.readFileSync(__dirname + '/script.ejs', 'utf8');
-
-module.exports = class BaseHrefRuntimeWebpackPlugin {
-  constructor(options) {
-    validate(schema, options, {
-      name: 'BaseHrefRuntimeWebpackPlugin',
-      baseDataPath: 'options',
-    });
-    this.options = options;
+  if (publicPaths.length === 0 && !fallbackBaseHref) {
+    return;
   }
 
-  apply(compiler) {
-    const publicPaths = (this.options.publicPaths || []).filter(Boolean);
-    const fallbackBaseHref = this.options.fallbackBaseHref;
+  const scriptTemplateFunction = `(function () {
+        var publicPaths = [${publicPaths.map(
+          (path) => "'" + path + "'"
+        )}] || [];
+        var fallbackBaseHref = '${fallbackBaseHref}' ? '${fallbackBaseHref}' : 'undefined';
+        
+        document.querySelector('base').href  = publicPaths.find(
+            (path) => window.location.pathname.includes(path.replace(/\\/$/, ""))
+        ) || fallbackBaseHref || document.baseURI})();`;
 
-    if (publicPaths.length === 0 && !fallbackBaseHref) {
-      return;
-    }
+  return {
+    name: "base-href-runtime-vite-plugin",
 
-    const logger = compiler.getInfrastructureLogger('BaseHrefRuntimeWebpackPlugin');
-    const scriptTemplateFunction = template(scriptTemplate);
-
-    compiler.hooks.compilation.tap('BaseHrefRuntimeWebpackPlugin', (compilation) => {
-      HtmlWebpackPlugin.getHooks(compilation).alterAssetTagGroups.tapAsync('BaseHrefRuntimeWebpackPlugin', (data, callback) => {
-        if (!data.plugin.options.base) {
-          logger.warn('You didn\'t specify "base" field in html-webpack-plugin');
-        }
-
-        const baseTagIndex = data.headTags.findIndex(tag => tag.tagName === 'base');
-        const targetIndex = baseTagIndex === -1 ? 0 : (baseTagIndex + 1);
-
-        const scriptInnerHTML = scriptTemplateFunction({
-          publicPaths: publicPaths,
-          fallbackBaseHref: fallbackBaseHref,
-        });
-
-        data.headTags = [
-          ...data.headTags.slice(0, targetIndex),
-          // @NOTE: Insert our script
-          {
-            tagName: 'script',
-            voidTag: false,
-            meta: { plugin: 'base-href-runtime-webpack-plugin' },
-            attributes: {
-              type: 'text/javascript',
-              'data-name': 'base-href-runtime-webpack-plugin',
-            },
-            innerHTML: scriptInnerHTML,
+    transformIndexHtml(html) {
+      const resTags = [
+        {
+          tag: "script",
+          voidTag: false,
+          injectTo: "head-prepend",
+          meta: { plugin: "base-href-runtime-webpack-plugin" },
+          attrs: {
+            type: "text/javascript",
+            "data-name": "base-href-runtime-webpack-plugin",
           },
-          ...data.headTags.slice(targetIndex)
-        ];
+          children: scriptTemplateFunction,
+        },
+      ];
 
-        callback(null, data);
-      });
-    });
-  }
+      if (!html.includes("<base")) {
+        resTags.unshift({
+          tag: "base",
+          voidTag: false,
+          injectTo: "head-prepend",
+          attrs: {
+            href: fallbackBaseHref,
+          },
+        });
+      }
+
+      return {
+        html: html.replace(/<base [^>]*/, `<base href="${fallbackBaseHref}"`),
+        tags: resTags,
+      };
+    },
+  };
 }
+
+module.exports = baseHrefRuntimeVitePlugin;
