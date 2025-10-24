@@ -8,8 +8,8 @@ function baseHrefRuntimeVitePlugin(options) {
 
   const scriptTemplateFunction = `(function () {
         var publicPaths = [${publicPaths.map(
-          (path) => "'" + path + "'"
-        )}] || [];
+    (path) => "'" + path + "'"
+  )}] || [];
         var fallbackBaseHref = '${fallbackBaseHref}' ? '${fallbackBaseHref}' : 'undefined';
         
         document.querySelector('base').href  = publicPaths.find(
@@ -25,10 +25,10 @@ function baseHrefRuntimeVitePlugin(options) {
           tag: "script",
           voidTag: false,
           injectTo: "head-prepend",
-          meta: { plugin: "base-href-runtime-webpack-plugin" },
+          meta: { plugin: "base-href-runtime-vite-plugin" },
           attrs: {
             type: "text/javascript",
-            "data-name": "base-href-runtime-webpack-plugin",
+            "data-name": "base-href-runtime-vite-plugin",
           },
           children: scriptTemplateFunction,
         },

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/base-href-runtime-webpack-plugin.iml" filepath="$PROJECT_DIR$/.idea/base-href-runtime-webpack-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/base-href-runtime-vite-plugin.iml" filepath="$PROJECT_DIR$/.idea/base-href-runtime-vite-plugin.iml" />
     </modules>
   </component>
 </project>
